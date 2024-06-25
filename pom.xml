@@ -25,6 +25,7 @@
         <module>todo-ms</module>
         <module>todo-list-service-discovery</module>
         <module>api-gateway</module>
+        <module>auth-service</module>
     </modules>
     <scm>
         <connection/>
