@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface TodoRepository extends JpaRepository<TodoModel, Integer> {
+    Iterable<TodoModel> findByUserEmail(String email);
 }

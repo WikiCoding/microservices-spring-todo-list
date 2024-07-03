@@ -1,23 +1,13 @@
 package com.wikicoding.jwt_auth.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wikicoding.jwt_auth.entity.Token;
-import com.wikicoding.jwt_auth.entity.TokenType;
-import com.wikicoding.jwt_auth.entity.User;
-import com.wikicoding.jwt_auth.repository.TokenRepository;
-import com.wikicoding.jwt_auth.repository.UserRepository;
-import com.wikicoding.jwt_auth.security_config.JwtService;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import com.wikicoding.jwt_auth.dtos.AuthRequest;
+import com.wikicoding.jwt_auth.dtos.AuthResponse;
+import com.wikicoding.jwt_auth.dtos.LoginRequest;
+import com.wikicoding.jwt_auth.dtos.UserVO;
 import lombok.AllArgsConstructor;
-import org.springframework.http.HttpHeaders;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.stereotype.Service;
-
-import java.io.IOException;
-import java.util.List;
+import org.springframework.web.client.RestTemplate;
 
 /**
  * Service to handle business logic
@@ -25,89 +15,55 @@ import java.util.List;
 @Service
 @AllArgsConstructor
 public class AuthenticationService {
-    private final UserRepository userRepository;
-    private final TokenRepository tokenRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final JwtService jwtService;
-    private final AuthenticationManager authenticationManager;
+    private final RestTemplate restTemplate;
+    private final JwtUtil jwtUtil;
 
-    public AuthResponseDTO register(RegisterReqDTO request) {
-        User user = new User(request.getUsername(),
-                passwordEncoder.encode(request.getPassword()), request.getRole());
+    public AuthResponse register(AuthRequest request) {
+        //do validation if user exists in DB
+        UserVO reqUser = restTemplate.getForObject("http://users-service/users/{email}",
+                UserVO.class,
+                request.getEmail());
 
-        User savedUser = userRepository.save(user);
+        if (reqUser != null) throw new IllegalArgumentException("User already registered");
 
-        String jwtToken = jwtService.generateToken(user);
-        String refreshToken = jwtService.generateRefreshToken(user);
+        request.setPassword(BCrypt.hashpw(request.getPassword(), BCrypt.gensalt()));
 
-        saveUserToken(savedUser, jwtToken);
+        UserVO registeredUser = restTemplate.postForObject("http://users-service/users", request, UserVO.class);
 
-        return new AuthResponseDTO(jwtToken, refreshToken);
+        String accessToken = jwtUtil.generate(registeredUser.getEmail(), registeredUser.getRole(), "ACCESS");
+        String refreshToken = jwtUtil.generate(registeredUser.getEmail(), registeredUser.getRole(), "REFRESH");
+
+        return new AuthResponse(accessToken, refreshToken);
     }
 
-    public AuthResponseDTO login(AuthRequestDTO request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
+    public AuthResponse login(LoginRequest request) {
+        //do validation if user exists in DB
+        UserVO reqUser = restTemplate.getForObject("http://users-service/users/{email}",
+                UserVO.class,
+                request.getEmail());
 
-        User user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow();
-        var jwtToken = jwtService.generateToken(user);
-        var refreshToken = jwtService.generateRefreshToken(user);
-        revokeAllUserTokens(user);
-        saveUserToken(user, jwtToken);
-        return new AuthResponseDTO(jwtToken, refreshToken);
+        if (reqUser == null) throw new IllegalArgumentException("User doesn't exist");
+
+        BCrypt.checkpw(request.getPassword(), reqUser.getPassword());
+        String jwtToken = jwtUtil.generate(reqUser.getEmail(), reqUser.getRole(), "BEARER");
+        String refreshToken = jwtUtil.generate(reqUser.getEmail(), reqUser.getRole(), "REFRESH");
+
+        // TODO: save token in the db
+
+        return new AuthResponse(jwtToken, refreshToken);
     }
 
-    public String logout(AuthRequestDTO request) {
-        User loggedUser = new User();
-        loggedUser.setUsername(request.getUsername());
-        loggedUser.setPassword(request.getPassword());
-        revokeAllUserTokens(loggedUser);
-        return "logged out";
-    }
+//    public String logout(AuthRequestDTO request) {
+//        User loggedUser = new User();
+//        loggedUser.setUsername(request.getUsername());
+//        loggedUser.setPassword(request.getPassword());
+//        revokeAllUserTokens(loggedUser);
+//        return "logged out";
+//    }
 
-    private void saveUserToken(User user, String jwtToken) {
-        Token token = new Token(jwtToken, TokenType.BEARER, false, false, user);
-
-        tokenRepository.save(token);
-    }
-
-    private void revokeAllUserTokens(User user) {
-        List<Token> validUserTokens = tokenRepository.findAllValidTokenByUser(user.getId());
-
-        if (validUserTokens.isEmpty()) return;
-
-        validUserTokens.forEach(token -> {
-            token.setExpired(true);
-            token.setRevoked(true);
-        });
-
-        tokenRepository.saveAll(validUserTokens);
-    }
-
-    public void refreshToken(
-            HttpServletRequest request,
-            HttpServletResponse response
-    ) throws IOException {
-        final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-        final String refreshToken;
-        final String userName;
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return;
-        }
-        refreshToken = authHeader.substring(7);
-        userName = jwtService.extractUsername(refreshToken);
-        if (userName != null) {
-            User user = this.userRepository.findByUsername(userName)
-                    .orElseThrow();
-            if (jwtService.isTokenValid(refreshToken, user)) {
-                var accessToken = jwtService.generateToken(user);
-                revokeAllUserTokens(user);
-                saveUserToken(user, accessToken);
-                AuthResponseDTO authResponse = new AuthResponseDTO(accessToken, refreshToken);
-
-                new ObjectMapper().writeValue(response.getOutputStream(), authResponse);
-            }
-        }
-    }
+//    private void saveUserToken(User user, String jwtToken) {
+//        Token token = new Token(jwtToken, TokenType.BEARER, false, false, user);
+//
+//        tokenRepository.save(token);
+//    }
 }

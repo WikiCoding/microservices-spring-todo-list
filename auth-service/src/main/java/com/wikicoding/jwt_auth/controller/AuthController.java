@@ -1,9 +1,9 @@
 package com.wikicoding.jwt_auth.controller;
 
-import com.wikicoding.jwt_auth.service.AuthRequestDTO;
-import com.wikicoding.jwt_auth.service.AuthResponseDTO;
+import com.wikicoding.jwt_auth.dtos.AuthRequest;
+import com.wikicoding.jwt_auth.dtos.AuthResponse;
+import com.wikicoding.jwt_auth.dtos.LoginRequest;
 import com.wikicoding.jwt_auth.service.AuthenticationService;
-import com.wikicoding.jwt_auth.service.RegisterReqDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
@@ -22,25 +22,17 @@ public class AuthController {
     private final AuthenticationService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponseDTO> register(@RequestBody RegisterReqDTO request) {
+    public ResponseEntity<AuthResponse> register(@RequestBody AuthRequest request) {
         return ResponseEntity.ok(authService.register(request));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponseDTO> login(@RequestBody AuthRequestDTO request) {
+    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
         return ResponseEntity.ok(authService.login(request));
     }
 
-    @PostMapping("/refresh-token")
-    public void refreshToken(
-            HttpServletRequest request,
-            HttpServletResponse response
-    ) throws IOException {
-        authService.refreshToken(request, response);
-    }
-
-    @PostMapping("/logout")
-    public ResponseEntity<String> logout(@RequestBody AuthRequestDTO request){
-        return ResponseEntity.ok(authService.logout(request));
-    }
+//    @PostMapping("/logout")
+//    public ResponseEntity<String> logout(@RequestBody AuthRequest request){
+//        return ResponseEntity.ok(authService.logout(request));
+//    }
 }

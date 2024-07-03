@@ -4,6 +4,7 @@ import com.wikicoding.todo_ms.domain.ddd.AggregateRoot;
 import com.wikicoding.todo_ms.domain.value_objects.TodoComplete;
 import com.wikicoding.todo_ms.domain.value_objects.TodoDescr;
 import com.wikicoding.todo_ms.domain.value_objects.TodoId;
+import com.wikicoding.todo_ms.domain.value_objects.TodoUserEmail;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,4 +18,5 @@ public class Todo implements AggregateRoot {
     private TodoId todoId;
     private final TodoDescr todoDescr;
     private TodoComplete todoComplete;
+    private TodoUserEmail todoUserEmail;
 }

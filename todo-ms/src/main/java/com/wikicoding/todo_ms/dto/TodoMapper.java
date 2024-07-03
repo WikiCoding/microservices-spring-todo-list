@@ -5,6 +5,7 @@ import com.wikicoding.todo_ms.domain.TodoFactory;
 import com.wikicoding.todo_ms.domain.value_objects.TodoComplete;
 import com.wikicoding.todo_ms.domain.value_objects.TodoDescr;
 import com.wikicoding.todo_ms.domain.value_objects.TodoId;
+import com.wikicoding.todo_ms.domain.value_objects.TodoUserEmail;
 import com.wikicoding.todo_ms.repository.datamodel.TodoModel;
 import org.springframework.stereotype.Service;
 
@@ -58,6 +59,7 @@ public class TodoMapper {
         TodoId todoId = new TodoId(todoModel.getId());
         TodoDescr todoDescr = new TodoDescr(todoModel.getDescription());
         TodoComplete todoComplete = new TodoComplete(todoModel.isCompleted());
-        return todoFactory.createTodo(todoId, todoDescr, todoComplete);
+        TodoUserEmail todoUserEmail = new TodoUserEmail(todoModel.getUserEmail());
+        return todoFactory.createTodo(todoId, todoDescr, todoComplete, todoUserEmail);
     }
 }

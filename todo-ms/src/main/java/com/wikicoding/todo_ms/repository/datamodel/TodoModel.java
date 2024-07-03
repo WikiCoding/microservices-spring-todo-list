@@ -17,6 +17,8 @@ public class TodoModel {
     private int id;
     private String description;
     private boolean completed = false;
+    @Column(name = "user_email")
+    private String userEmail;
 
     @Version
     @Column(name = "version", columnDefinition = "integer DEFAULT 0", nullable = false)
@@ -26,11 +28,13 @@ public class TodoModel {
         this.id = todo.getTodoId().getId();
         this.description = todo.getTodoDescr().getDescr();
         this.completed = todo.getTodoComplete().isComplete();
+        this.userEmail = todo.getTodoUserEmail().getUserEmail();
     }
 
     public void updateTodo(Todo todo) {
         this.id = todo.getTodoId().getId();
         this.description = todo.getTodoDescr().getDescr();
         this.completed = todo.getTodoComplete().isComplete();
+        this.userEmail = todo.getTodoUserEmail().getUserEmail();
     }
 }

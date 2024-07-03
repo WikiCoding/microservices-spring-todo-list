@@ -3,5 +3,6 @@ CREATE TABLE IF NOT EXISTS public.todo (
     description CHARACTER VARYING(255) NOT NULL,
     completed BOOLEAN NOT NULL,
     version INTEGER NOT NULL,
+    user_email CHARACTER VARYING(255) NOT NULL,
     PRIMARY KEY (todoid)
 );

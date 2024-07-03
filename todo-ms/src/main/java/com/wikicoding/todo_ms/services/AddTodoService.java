@@ -6,6 +6,7 @@ import com.wikicoding.todo_ms.domain.usecases.AddTodo;
 import com.wikicoding.todo_ms.domain.value_objects.TodoComplete;
 import com.wikicoding.todo_ms.domain.value_objects.TodoDescr;
 import com.wikicoding.todo_ms.domain.value_objects.TodoId;
+import com.wikicoding.todo_ms.domain.value_objects.TodoUserEmail;
 import com.wikicoding.todo_ms.dto.TodoMapper;
 import com.wikicoding.todo_ms.repository.TodoRepository;
 import com.wikicoding.todo_ms.repository.datamodel.TodoModel;
@@ -20,8 +21,9 @@ public class AddTodoService implements AddTodo {
     private final TodoMapper todoMapper;
 
     @Override
-    public Todo addTodo(TodoId todoId, TodoDescr todoDescr, TodoComplete todoComplete) {
-        Todo todo = todoFactory.createTodo(todoId, todoDescr, todoComplete);
+    public Todo addTodo(TodoId todoId, TodoDescr todoDescr, TodoComplete todoComplete, TodoUserEmail todoUserEmail) {
+        // Check if user exists is not needed since it was previously checked at the Gateway filter
+        Todo todo = todoFactory.createTodo(todoId, todoDescr, todoComplete, todoUserEmail);
 
         TodoModel todoModel = new TodoModel(todo);
 

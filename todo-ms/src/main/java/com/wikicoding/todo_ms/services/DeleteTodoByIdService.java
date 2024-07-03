@@ -8,22 +8,26 @@ import com.wikicoding.todo_ms.dto.TodoMapper;
 import com.wikicoding.todo_ms.repository.TodoRepository;
 import com.wikicoding.todo_ms.repository.datamodel.TodoModel;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class DeleteTodoByIdService implements DeleteTodoById {
     private final TodoRepository repository;
-    private final TodoFactory todoFactory;
     private final TodoMapper todoMapper;
 
     @Override
-    public Todo deleteTodoById(int todoId) {
+    public Todo deleteTodoById(int todoId, String email) {
         Optional<TodoModel> todoModel = repository.findById(todoId);
         if (todoModel.isEmpty()) throw new NotFoundException("Todo not found");
         repository.deleteById(todoId);
+
+        // send notification
+        log.info("Sending notification to {}", email);
 
         return todoMapper.dataModelToDomain(todoModel.get());
     }

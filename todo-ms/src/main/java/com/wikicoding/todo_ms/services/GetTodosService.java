@@ -5,6 +5,7 @@ import com.wikicoding.todo_ms.domain.TodoFactory;
 import com.wikicoding.todo_ms.domain.usecases.GetTodos;
 import com.wikicoding.todo_ms.dto.TodoMapper;
 import com.wikicoding.todo_ms.repository.TodoRepository;
+import com.wikicoding.todo_ms.repository.datamodel.TodoModel;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -14,7 +15,9 @@ public class GetTodosService implements GetTodos {
     private final TodoRepository repository;
     private final TodoFactory todoFactory;
 
-    public Iterable<Todo> getTodos() {
-        return new TodoMapper(todoFactory).listDataModelToDomain(repository.findAll());
+    public Iterable<Todo> getTodos(String email) {
+        Iterable<TodoModel> data = repository.findByUserEmail(email);
+        System.out.println(data);
+        return new TodoMapper(todoFactory).listDataModelToDomain(data);
     }
 }

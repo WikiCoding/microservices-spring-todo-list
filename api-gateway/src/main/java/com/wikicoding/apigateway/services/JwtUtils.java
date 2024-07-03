@@ -35,4 +35,14 @@ public class JwtUtils {
             return false;
         }
     }
+
+    public String extractUsername(String token) {
+        try {
+            Claims claims = getClaims(token);
+            return (String) claims.get("email");
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return null;
+        }
+    }
 }

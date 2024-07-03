@@ -32,9 +32,18 @@ public class AuthenticationFilter implements GatewayFilter {
 
             final String token = request.getHeaders().getOrEmpty("Authorization").get(0);
 
+            String username = jwtUtils.extractUsername(token.split(" ")[1]);
+
             if (jwtUtils.isExpired(token)) {
                 return onError(exchange, HttpStatus.UNAUTHORIZED);
             }
+
+            // Add the extracted username as a custom header
+            ServerHttpRequest modifiedRequest = request.mutate()
+                    .header("X-Email", username)
+                    .build();
+
+            return chain.filter(exchange.mutate().request(modifiedRequest).build());
         }
         return chain.filter(exchange);
     }

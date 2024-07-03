@@ -8,6 +8,7 @@ import com.wikicoding.todo_ms.domain.usecases.UpdateTodoById;
 import com.wikicoding.todo_ms.domain.value_objects.TodoComplete;
 import com.wikicoding.todo_ms.domain.value_objects.TodoDescr;
 import com.wikicoding.todo_ms.domain.value_objects.TodoId;
+import com.wikicoding.todo_ms.domain.value_objects.TodoUserEmail;
 import com.wikicoding.todo_ms.dto.TodoMapper;
 import com.wikicoding.todo_ms.dto.TodoRequest;
 import com.wikicoding.todo_ms.dto.TodoResponse;
@@ -27,18 +28,22 @@ public class TodoController {
     private final TodoMapper todoMapper;
 
     @GetMapping
-    public ResponseEntity<Iterable<TodoResponse>> getTodos() {
-        Iterable<Todo> todoResponseList = getTodosService.getTodos();
+    public ResponseEntity<Iterable<TodoResponse>> getTodos(@RequestHeader("X-Email") String email) {
+        if (email == null) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+
+        Iterable<Todo> todoResponseList = getTodosService.getTodos(email);
 
         return ResponseEntity.status(HttpStatus.OK).body(todoMapper.listDomainToResponse(todoResponseList));
     }
 
     @PostMapping
-    public ResponseEntity<TodoResponse> addTodo(@RequestBody TodoRequest todoRequest) {
+    public ResponseEntity<TodoResponse> addTodo(@RequestBody TodoRequest todoRequest,
+                                                @RequestHeader("X-Email") String email) {
         TodoId todoId = TodoId.builder().id(0).build();
         TodoDescr todoDescr = TodoDescr.builder().descr(todoRequest.getDescription()).build();
         TodoComplete todoComplete = TodoComplete.builder().complete(todoRequest.isCompleted()).build();
-        Todo todo = addTodoService.addTodo(todoId, todoDescr, todoComplete);
+        TodoUserEmail todoUserEmail = TodoUserEmail.builder().userEmail(email).build();
+        Todo todo = addTodoService.addTodo(todoId, todoDescr, todoComplete, todoUserEmail);
         TodoResponse todoResponse = TodoResponse.builder().id(todo.getTodoId().getId())
                 .description(todo.getTodoDescr().getDescr())
                 .completed(todo.getTodoComplete().isComplete())
@@ -47,17 +52,21 @@ public class TodoController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<TodoResponse> updateTodo(@PathVariable("id") int id, @RequestBody TodoRequest todoRequest) {
+    public ResponseEntity<TodoResponse> updateTodo(@PathVariable("id") int id,
+                                                   @RequestBody TodoRequest todoRequest,
+                                                   @RequestHeader("X-Email") String email) {
         TodoDescr todoDescr = TodoDescr.builder().descr(todoRequest.getDescription()).build();
         TodoComplete todoComplete = TodoComplete.builder().complete(todoRequest.isCompleted()).build();
-        Todo todo = updateTodoByIdService.updateTodoById(id, todoDescr, todoComplete);
+        TodoUserEmail todoUserEmail = TodoUserEmail.builder().userEmail(email).build();
+        Todo todo = updateTodoByIdService.updateTodoById(id, todoDescr, todoComplete, todoUserEmail);
 
         return ResponseEntity.status(HttpStatus.OK).body(todoMapper.domainToResponse(todo));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<TodoResponse> deleteTodo(@PathVariable("id") int id) {
-        Todo todo = deleteTodoByIdService.deleteTodoById(id);
+    public ResponseEntity<TodoResponse> deleteTodo(@PathVariable("id") int id,
+                                                   @RequestHeader("X-Email") String email) {
+        Todo todo = deleteTodoByIdService.deleteTodoById(id, email);
 
         return ResponseEntity.status(HttpStatus.OK).body(todoMapper.domainToResponse(todo));
     }
