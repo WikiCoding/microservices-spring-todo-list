@@ -1,4 +1,4 @@
-package com.wikicoding.todo_ms.dto;
+package com.wikicoding.notification_service.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

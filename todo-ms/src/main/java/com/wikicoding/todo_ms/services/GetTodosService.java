@@ -17,7 +17,7 @@ public class GetTodosService implements GetTodos {
 
     public Iterable<Todo> getTodos(String email) {
         Iterable<TodoModel> data = repository.findByUserEmail(email);
-        System.out.println(data);
+
         return new TodoMapper(todoFactory).listDataModelToDomain(data);
     }
 }

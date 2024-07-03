@@ -52,6 +52,7 @@ public class TodoMapper {
                 .id(todo.getTodoId().getId())
                 .description(todo.getTodoDescr().getDescr())
                 .completed(todo.getTodoComplete().isComplete())
+                .userEmail(todo.getTodoUserEmail().getUserEmail())
                 .build();
     }
 
