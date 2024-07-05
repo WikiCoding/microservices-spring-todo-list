@@ -9,6 +9,7 @@ import com.wikicoding.todo_ms.domain.value_objects.TodoComplete;
 import com.wikicoding.todo_ms.domain.value_objects.TodoDescr;
 import com.wikicoding.todo_ms.domain.value_objects.TodoId;
 import com.wikicoding.todo_ms.domain.value_objects.TodoUserEmail;
+import com.wikicoding.todo_ms.dto.PagedResponse;
 import com.wikicoding.todo_ms.dto.TodoMapper;
 import com.wikicoding.todo_ms.dto.TodoRequest;
 import com.wikicoding.todo_ms.dto.TodoResponse;
@@ -29,14 +30,21 @@ public class TodoController {
     private final TodoMapper todoMapper;
 
     @GetMapping(params = { "page", "size" })
-    public ResponseEntity<Iterable<TodoResponse>> getTodos(@RequestHeader("X-Email") String email,
+    public ResponseEntity<PagedResponse<TodoResponse>> getTodos(@RequestHeader("X-Email") String email,
                                                            @RequestParam(name = "page", defaultValue = "0") int page,
                                                            @RequestParam(name = "size", defaultValue = "0") int size) {
         if (email == null) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
 
-        Iterable<Todo> todoResponseList = getTodosService.getTodos(email, page, size);
+        Page<Todo> todoResponseList = getTodosService.getTodos(email, page, size);
+        Iterable<TodoResponse> todoResponses = todoMapper.listDomainToResponse(todoResponseList);
 
-        return ResponseEntity.status(HttpStatus.OK).body(todoMapper.listDomainToResponse(todoResponseList));
+        PagedResponse<TodoResponse> response = new PagedResponse<>(
+                todoResponses,
+                size,
+                todoResponseList.getTotalPages()
+        );
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @PostMapping

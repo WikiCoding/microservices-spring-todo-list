@@ -1,9 +1,8 @@
 package com.wikicoding.todo_ms.domain.usecases;
 
 import com.wikicoding.todo_ms.domain.Todo;
-
-import java.awt.print.Pageable;
+import org.springframework.data.domain.Page;
 
 public interface GetTodos {
-    Iterable<Todo> getTodos(String email, int size, int page);
+    Page<Todo> getTodos(String email, int size, int page);
 }
