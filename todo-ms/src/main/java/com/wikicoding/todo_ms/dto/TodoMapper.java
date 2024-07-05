@@ -7,6 +7,9 @@ import com.wikicoding.todo_ms.domain.value_objects.TodoDescr;
 import com.wikicoding.todo_ms.domain.value_objects.TodoId;
 import com.wikicoding.todo_ms.domain.value_objects.TodoUserEmail;
 import com.wikicoding.todo_ms.repository.datamodel.TodoModel;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -24,15 +27,12 @@ public class TodoMapper {
         return buildTodoObject(todoModel);
     }
 
-    public Iterable<Todo> listDataModelToDomain(Iterable<TodoModel> todos) {
-        List<Todo> todosRes = new ArrayList<>();
+    public Page<Todo> listDataModelToDomain(Page<TodoModel> todos) {
+        List<Todo> todosRes = todos.stream().map(this::buildTodoObject).toList();
 
-        for (TodoModel todoModel : todos) {
-            Todo todoRes = buildTodoObject(todoModel);
-            todosRes.add(todoRes);
-        }
+        Pageable pageable = todos.getPageable();
 
-        return todosRes;
+        return new PageImpl<>(todosRes, pageable, todos.getTotalElements());
     }
 
     public Iterable<TodoResponse> listDomainToResponse(Iterable<Todo> todos) {

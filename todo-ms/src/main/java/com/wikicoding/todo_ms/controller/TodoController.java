@@ -13,6 +13,7 @@ import com.wikicoding.todo_ms.dto.TodoMapper;
 import com.wikicoding.todo_ms.dto.TodoRequest;
 import com.wikicoding.todo_ms.dto.TodoResponse;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,11 +28,13 @@ public class TodoController {
     private final DeleteTodoById deleteTodoByIdService;
     private final TodoMapper todoMapper;
 
-    @GetMapping
-    public ResponseEntity<Iterable<TodoResponse>> getTodos(@RequestHeader("X-Email") String email) {
+    @GetMapping(params = { "page", "size" })
+    public ResponseEntity<Iterable<TodoResponse>> getTodos(@RequestHeader("X-Email") String email,
+                                                           @RequestParam(name = "page", defaultValue = "0") int page,
+                                                           @RequestParam(name = "size", defaultValue = "0") int size) {
         if (email == null) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
 
-        Iterable<Todo> todoResponseList = getTodosService.getTodos(email);
+        Iterable<Todo> todoResponseList = getTodosService.getTodos(email, page, size);
 
         return ResponseEntity.status(HttpStatus.OK).body(todoMapper.listDomainToResponse(todoResponseList));
     }
